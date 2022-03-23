@@ -51,3 +51,13 @@ Definicja formalna operatorów
 Stworzenie generycznego algorytmu planowania zadań rozwiązujący problem znalezienia instrukcji w świecie klocków potrzebnych do otrzymania konkretnego stanu.
 Więcej informacji w dokumentacji folderze Docs.
 
+## Użycie
+Aplikacja konsolowa przyjmuje jeden argument, ścieżkę do pliku konfiguracyjnego. 
+W przypadku braku argumentu używa pliku conf.xml.
+Domyslne ustawienia
+```
+  <MaxIterations>100</MaxIterations>
+  <PathToProblem>..\..\..\problem.txt</PathToProblem>
+  <PopulationSize>1000</PopulationSize>
+  <OutputPath>.\output.txt</OutputPath>
+```
