@@ -1,0 +1,153 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[polish]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{siunitx}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{siunitx}
+\usepackage{longtable}
+\usepackage{pdfpages}
+
+\usepackage{hyperref}
+
+\oddsidemargin 0pt
+\evensidemargin 0pt
+\marginparwidth 40pt
+\marginparsep 10pt
+\topmargin -20pt
+\headsep 10pt
+\textheight 8.7in
+\textwidth 6.65in
+\linespread{1.2}
+
+
+\title{MSI}
+\author{Weronika Głuszczak, Kacper Słowikowski, Anna Szmurło, Krzysztof Tabeau, Vladyslav Yatsenko}
+
+
+\begin{document}
+
+\maketitle
+\cleardoublepage
+\tableofcontents
+
+\cleardoublepage
+\section{Wstęp}
+
+\section{Algorytm genetyczny}
+\input{AG}
+
+\section{Planowanie zadań}
+\textbf{Planowanie}  jest techniką rozwiązywania problemów z dziedziny
+AI, która polega na określeniu ciągu akcji (operacji) jakie należy
+podjąć, aby przejść z zadanego stanu początkowego do stanu
+końcowego będącego celem.
+\subsection{Przeszukiwanie w celu generowania planu}
+W algorytmach przeszukiwania to funkcja heurystyczna wskazuje
+potencjalnie najlepsze kierunki przeszukiwania. Wybór odbywa się trochę na zasadzie „zgadywania”, zatem każda dopuszczalna zmiana (kierunek) musi być przeanalizowana. Funkcja oceny heurystycznej nie pozwala wyeliminować akcji w
+trakcie przeszukiwania, lecz pomaga jedynie je uporządkować. Określona akcja jest analizowana nie dlatego, że prowadzi do osiągnięcia celu, lecz dlatego, że jest dopuszczalna w danym stanie. \\
+\begin{itemize}
+\item Rodzaje mechanizmów generacji planów:
+    \begin{itemize}
+      \item Planowanie \textbf{w przód} od stanu początkowego do stanu końcowego - propagacja stanów w przód (progresja)
+      \item Planowanie \textbf{w tył} od stanu końcowego do stanu początkowego - propagacja stanów wstecz (regresja)
+    \end{itemize}
+\end{itemize}
+Systemy planowania w przód mają znaczenie tylko teoretyczne. Większość praktycznych systemów planowania, to systemy planowania wstecz.
+
+\section{Opis projektu}
+Jako zadanie do realizacji wybraliśmy klasyczny problem w dziedzinie planowania zadań - STRIPS. Musimy znaleźć ciąg akcji który doprowadzi nas do pożądanego stanu końcowego. 
+\subsection{STRIPS}
+Problem potocznie jest również nazywany światem klocków i dzieje się tak nie bez powodu. \\
+Tłumaczą to założenia problemu:
+\begin{itemize}
+    \item powierzchnia/płaszczyzna/podłoże, na którym umieszczamy klocki jest gładka i nieograniczona
+    \item wszystkie klocki mają takie same rozmiary
+    \item klocki mogą być umieszczone jeden na drugim
+    \item klocki mogą tworzyć stosy
+    \item położenie horyzontalne klocków jest nieistotne, liczy się ich wertykalne położenie względem siebie
+    \item manipulujemy klockami tylko za pomocą ramienia robota
+    \item w danej chwili w ramieniu robota może znajdować się tylko jeden klocek
+\end{itemize}
+Następnie mamy zdefiniowane predykaty oraz operatory na predykatach za pomocą których możemy zmieniać stan świata klocków. Celem problemu jest stworzenie planu lub sekwencji stosowania operatorów, aby doprowadzić świat do pewnych stanów tzn. chcemy doprowadzić aby zostały spełnione warunki definiowane na początku zadania.
+Zbiór operatorów z ich opisami:
+\begin{itemize}
+    \item STACK(x,y): umieszczenie klocka x na klocku y; w ramieniu robota musi znajdować się klocek x, a na klocku y nie może znajdować się żaden klocek
+    \item UNSTACK(x,y): zdjęcie klocka x z klocka y; ramię robota musi być puste/wolne a na klocku x nie może znajdować się inny klocek
+    \item PICKUP(x): podniesienie klocka x z podłoża; ramię robota musi być puste/wolne a na klocku x nie może znajdować się inny klocek
+    \item PUTDOWN(x): umieszczenie klocka x na podłożu; w ramieniu robota musi znajdować się klocek x
+\end{itemize}
+Oraz zbiór predykatów:
+\begin{itemize}
+    \item ON(x,y) - spełniony, gdy klocek x znajduje się na klocku y
+    \item ONTABLE(x) - spełniony, gdy klocek x znajduje się bezpośrednio na podłożu
+    \item CLEAR(x) - spełniony, gdy powierzchnia klocka x jest pusta tzn. nie znajduje się na nim żaden inny klocek
+    \item HOLDING(x) - spełniony, gdy w ramieniu robota znajduje się klocek x
+    \item ARMEMPTY - spełniony, gdy ramię robota jest puste/wolne
+\end{itemize}
+Ponad to każdy operator zawiera listę predykatów, które muszą być spełnione przed jego użyciem (PRECONDITION), listę predykatów które staną się prawdziwe po jego zastosowaniu (ADD) i listę predykatów, która przestanie być prawdziwa (DELETE). Warto dodać, że predykaty które nie zawierają się w ADD i DELETE zostają niezmienione. Wiedząc to, możemy formalnie zdefiniować operatory na podstawie powyższych list:
+\begin{itemize}
+    \item STACK(x,y):
+    \begin{itemize}
+        \item PRECONDITION: CLEAR(y) $\And$ HOLDING(x)
+        \item DELETE: CLEAR(y) $\And$ HOLDING(x)
+        \item ADD: ARMEMPTY $\And$ ON(x,y)
+    \end{itemize}
+    \item UNSTACK(x,y):
+    \begin{itemize}
+        \item PRECONDITION: ON(x,y) $\And$ CLEAR(x) $\And$ ARMEMPTY
+        \item DELETE: ON(x,y) $\And$ ARMEMPTY
+        \item ADD: HOLDING(x) $\And$ CLEAR(y)
+    \end{itemize}
+        \item PICKUP(x):
+    \begin{itemize}
+        \item PRECONDITION: CLEAR(x) $\And$ ONTABLE(x) $\And$ ARMEMPTY
+        \item DELETE: ONTABLE(x) $\And$ ARMEMPTY
+        \item ADD: HOLDING(x)
+    \end{itemize}
+    \item PUTDOWN(x):
+    \begin{itemize}
+        \item PRECONDITION: HOLDING(x)
+        \item DELETE: HOLDING(x)
+        \item ADD: ONTABLE(x) $\And$ ARMEMPTY
+    \end{itemize}
+\end{itemize}
+\subsection{Postać genotypu}
+Każdy osobnik jest kandydatem na rozwiązanie zadania, w naszym przypadku każdy osobnik reprezentuje plan - ciąg akcji. Każdy gen jest pewną akcją. Akcja jest reprezentowana przez pewną liczbę naturalną - od 0 do liczby wszystkich możliwych akcji. \\
+W klasycznym algorytmie genetycznym długość chromosomów każdego osobnika jest taka sama. Zaś w naszym przypadku długość planu może być różna - zatem musimy założyć że długości chromosomów różnych osobników mogą być różne. \\
+Zatem genotyp każdego osobnika będzie się składał z jednego chromosomu - ciągu akcji, niekoniecznie stałej długości.
+\subsection{Funkcja jakości}
+Funkcja jakości mierzy jakość chromosomu. Przede wszystkim porównuje stan końcowy planu z pożądanym stanem końcowym. Ale nie każdy ciąg akcji jest poprawnym planem i prowadzi do pewnego stanu - żeby akcja była wykonywalna, obecny stan powinien spełniać pewne kryteria. \\
+Załóżmy chromosom ma wartość $g_1, g_2, \dots , g_n$. Możliwa jest sytuacja że akcja $g_1$ nie jest wykonywalna ze stanu początkowego, ale $g_2$ już tak. $g_3$ nie jest wykonywalna ze stanu osiągniętego po wykonaniu akcji $g_2$, ale $g_4$ jest. Można nie pozwalać na takie sytuacje, ale to powoduje znaczne skomplikowanie podstawowych operacji genetycznych. Zatem przyjęliśmy inny model.
+Dla każdego chromosomu reprezentującego plan definiujemy wektor binarny o takiej samej długości. Rozważmy pierwszą niezerową liczbę w nim - załóżmy że znajduje się ona na pozycji $i$. Będzie to znaczyło że wszystkie akcje o numerach $1 \dots i-1$ w chromosomie nie są wykonywalne ze stanu początkowego, ale akcja pod numerem $i$ jest. Załóżmy teraz że następny niezerowy element znajduje się na pozycji $j$ - to oznacza że wszystkie akcje o numerach $i+1 \dots j-1$ nie są wykonywalne ze stanu osiągniętego po wykonaniu akcji $i$, ale akcja o numerze $j$ jest wykonywalna. W taki sposób na miejscach gdzie wartości są niezerowe będziemy mieli tylko wykonywalne akcje, zatem będą one tworzyły poprawny plan. \\
+Przydatne będzie również zdefiniowanie kolejnego wektora binarnego, tworzonego w ten sam sposób co poprzedni, ale licząc akcje od tyłu zaczynając od pożądanego stanu końcowego - w wektorze wartość 1 będzie znaczyła że kolejny stan jest osiągalny przez wykonanie akcji. \\
+Więc nasza funkcja jakości będzie złożeniem parametrów:
+\begin{enumerate}
+    \item Liczba wykonywalnych akcji do przodu zaczynając od stanu początkowego - czyli liczba jedynek w pierwszym wektorze binarnym.
+    \item Liczba wykonywalnych akcji do tyłu zaczynając od pożądanego końcowego - czyli liczba jedynek w drugim wektorze binarnym.
+    \item Podobieństwo stanu osiągniętego wykonywalnymi akcjami do przodu do pożądanego stanu końcowego.
+    \item Podobieństwo stanu osiągniętego wykonywalnymi akcjami do tyłu do stanu początkowego.
+\end{enumerate}
+Taka funkcja jakości pozwoli na skuteczne, z punktu widzenia jakości potomstwa, krzyżowanie osobników które dobrze sobie radzą na początku bądź na końcu planu.
+\subsection{Operatory genetyczne}
+\subsubsection{Krzyżowanie}
+Jest zwykłym krzyżowaniem jednopunktowym z wyborem losowego punktu z klasycznego algorytmu genetycznego.
+\subsubsection{Mutacja}
+Jest taka sama jak w klasycznym algorytmie genetycznym, czyli z pewnym prawdopodobieństwem zmienia wartość losowego genu na losową wartość.
+\subsubsection{Kompresja}
+Dodatkowo wprowadzamy trzeci operator - kompresja. Polega on na tym, że z chromosomu są usuwane wszystkie niewykonywalne akcje, czyli wszystkie akcje dla których wartością w odpowiednim wektorze binarnym jest 0.
+
+\subsection{Selekcja}
+Na razie zakładamy selekcję elitarną - w nowej populacji zostają najlepsze osobniki z poprzedniej generacji oraz nowe potomstwo otrzymane w wyniku stosowania operatorów genetycznych.
+
+\section{Przykłady działania wybranych elementów algorytmu}
+\subsection{Operator kompresji}
+Załóżmy że chromosom $\left\{5, 17, 2, 11, 12\right\}$ został wybrany przez algorytm jako chromosom na którym trzeba wykonać operator kompresji. Załóżmy również że dla danego zadania wektor wykonywalnośći tego chromosomu jest równy $\left\{1, 0, 1, 1, 0\right\}$. Zatem po zaaplikowaniu operatora kompresji w populacji zamiast pierwotnego chromosomu pojawi się chromosom $\left\{5, 2, 11\right\}$.
+\subsection{Operator mutacji}
+Załóżmy że chromosom $\left\{5, 17, 2, 11, 12\right\}$ został wybrany przez algorytm jako chromosom na którym trzeba wykonać operator mutacji. W takim przypadku jest losowane miejsce w którym należy zmienić wartość genu oraz na co należy ją zmienić. Załóżmy że zostało wylosowane miejsce o numerze $3$ (numerujemy od $0$) i wartość $17$. Wtedy po wykonaniu operatora mutacji chromosom będzie miał postać $\left\{5, 17, 2, 17, 12\right\}$.
+\subsection{Operator krzyżowania}
+Załóżmy że do krzyżowania zostały wybrane chromosomy $\left\{5, 17, 2, 11, 12\right\}$ oraz $\left\{9, 8, 3, 15\right\}$. Krzyżowanie jest jednopunktowe, zatem następnie jest losowany jeden punkt krzyżowania - załóżmy że wylosowano wartość $3$. To znaczy że z każdego chromosomu w parze są brane pierwsze $3$ geny, a końcówki są zamieniane miejscami - czyli z wybranej pary chromosomów utworzy się kolejna para $\left\{5, 17, 2, 15\right\}$ i $\left\{9, 8, 3, 11, 12\right\}$.
+
+\end{document}
