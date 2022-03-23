@@ -1,8 +1,6 @@
-# Artificial-intelligence-fundamentals
-Project made during subject Artificial intelligence fundamentals during my studies
-
-
-## STRIPS - world of blocks
+# Metody sztucznej inteligencji (Artificial intelligence fundamentals)
+Pełna dokumentacja w folderze Docs.
+## STRIPS - świat klocków
 #### Założenia świata klocków:
 * powierzchnia/płaszczyzna/podłoże, na którym umieszczamy klocki jest gładka i nieograniczona
 * wszystkie klocki mają takie same rozmiary
@@ -49,7 +47,6 @@ Definicja formalna operatorów
 
 ## Cel i zadanie programu
 Stworzenie generycznego algorytmu planowania zadań rozwiązujący problem znalezienia instrukcji w świecie klocków potrzebnych do otrzymania konkretnego stanu.
-Więcej informacji w dokumentacji folderze Docs.
 
 ## Użycie
 Aplikacja konsolowa przyjmuje jeden argument, ścieżkę do pliku konfiguracyjnego. 
